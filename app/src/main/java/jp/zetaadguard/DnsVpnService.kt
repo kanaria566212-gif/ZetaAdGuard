@@ -218,7 +218,12 @@ class DnsVpnService : VpnService() {
             "play.mtgglobals.com",
             "rt.applovin.com",
             "bm-ads.io",
-            "logs.ads.vungle.com"
+            "logs.ads.vungle.com",
+            "cached-ad-d.fyber.com",
+            "cdn2.inner-active.mobi",
+            "sdk-bidding-d-events.inner-active.mobi",
+            "cdn-adn-https-new.mtgglobals.com",
+            "sg-new-ssp-hb.mtgglobals.com"
         )
     }
 }
