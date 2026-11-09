@@ -60,6 +60,7 @@ class MainActivity : Activity() {
         }
         layout.addView(status)
         layout.addView(start)
+        layout.addView(autoBlock)
         layout.addView(logs)
         layout.addView(stop)
         setContentView(layout)
