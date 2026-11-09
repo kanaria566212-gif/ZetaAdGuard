@@ -217,6 +217,7 @@ class DnsVpnService : VpnService() {
             "sg-ali-ad-mof-sdk.mtgglobals.com",
             "play.mtgglobals.com",
             "rt.applovin.com",
+            "bm-ads.io",
             "logs.ads.vungle.com"
         )
     }
