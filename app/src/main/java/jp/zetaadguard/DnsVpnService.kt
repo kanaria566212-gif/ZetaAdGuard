@@ -210,20 +210,13 @@ class DnsVpnService : VpnService() {
         // Google ad domains plus ad-delivery endpoints observed while the ZETA ad prompt appeared.
         // Keep these as exact hostnames to avoid blocking entire SDK/analytics domains.
         private val BLOCKED_DOMAINS = setOf(
+            // Broad blocking of ad-network domains observed in ZETA traffic.
+            // This can break ad SDK features or related app functions; remove entries to roll back.
             "doubleclick.net", "googlesyndication.com", "googleadservices.com",
             "adservice.google.com", "pagead2.googlesyndication.com",
-            "sdkapi.dsp-api.moloco.com",
-            "gateway.unityads.unity3d.com",
-            "sg-ali-ad-mof-sdk.mtgglobals.com",
-            "play.mtgglobals.com",
-            "rt.applovin.com",
-            "bm-ads.io",
-            "logs.ads.vungle.com",
-            "cached-ad-d.fyber.com",
-            "cdn2.inner-active.mobi",
-            "sdk-bidding-d-events.inner-active.mobi",
-            "cdn-adn-https-new.mtgglobals.com",
-            "sg-new-ssp-hb.mtgglobals.com"
+            "unity3d.com", "applovin.com", "vungle.com", "moloco.com",
+            "mtgglobals.com", "fyber.com", "inner-active.mobi",
+            "pangle.io", "bm-ads.io"
         )
     }
 }
