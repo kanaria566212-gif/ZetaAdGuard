@@ -7,11 +7,15 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
 
 class DnsVpnService : VpnService() {
@@ -31,10 +35,12 @@ class DnsVpnService : VpnService() {
                 .addRoute("10.0.0.1", 32)
                 .establish()
             if (tun == null) {
+                logLine("ERROR: VPN establish() returned null")
                 running.set(false)
                 stopSelf()
                 return START_NOT_STICKY
             }
+            logLine("=== DNS VPN started ===")
             worker = Thread { processPackets() }.also { it.start() }
         }
         return START_STICKY
@@ -62,18 +68,36 @@ class DnsVpnService : VpnService() {
                 val dnsStart = udp + 8
                 val dnsLength = length - dnsStart
                 if (dnsLength < 12) continue
-                val blocked = readDomain(packet, dnsStart, dnsLength)?.let { name ->
-                    BLOCKED_DOMAINS.any { name == it || name.endsWith(".$it") }
-                } ?: false
-                val dnsReply = if (blocked) nxdomain(packet.copyOfRange(dnsStart, length)) else forwardDns(packet.copyOfRange(dnsStart, length))
+                val query = packet.copyOfRange(dnsStart, length)
+                val domain = readDomain(query, 0, query.size) ?: "(解析できないDNS名)"
+                val blocked = BLOCKED_DOMAINS.any { domain == it || domain.endsWith(".$it") }
+                logLine("${if (blocked) "BLOCK" else "DNS"} $domain")
+                val dnsReply = if (blocked) nxdomain(query) else forwardDns(query)
                 if (dnsReply != null) {
                     val reply = buildUdpReply(packet, ihl, srcPort, 53, dnsReply)
                     output.write(reply)
+                } else {
+                    logLine("NO RESPONSE $domain")
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                if (running.get()) logLine("PACKET ERROR: ${e.javaClass.simpleName}: ${e.message ?: ""}")
                 if (!running.get()) break
             }
         }
+    }
+
+    private fun logLine(message: String) {
+        try {
+            synchronized(LOG_LOCK) {
+                val file = File(filesDir, LOG_FILE)
+                if (file.exists() && file.length() > 48 * 1024) {
+                    val tail = file.readLines().takeLast(150)
+                    file.writeText(tail.joinToString("\n", postfix = "\n"))
+                }
+                val time = SimpleDateFormat("HH:mm:ss", Locale.JAPAN).format(Date())
+                file.appendText("$time $message\n")
+            }
+        } catch (_: Exception) { }
     }
 
     private fun forwardDns(query: ByteArray): ByteArray? {
@@ -171,16 +195,18 @@ class DnsVpnService : VpnService() {
 
     private fun notification(): Notification {
         return if (Build.VERSION.SDK_INT >= 26) {
-            Notification.Builder(this, CHANNEL_ID).setContentTitle("ZetaAdGuard").setContentText("DNSフィルタが動作中").setSmallIcon(android.R.drawable.ic_secure).build()
+            Notification.Builder(this, CHANNEL_ID).setContentTitle("ZetaAdGuard").setContentText("DNSフィルタ・通信記録中").setSmallIcon(android.R.drawable.ic_secure).build()
         } else {
             @Suppress("DEPRECATION")
-            Notification.Builder(this).setContentTitle("ZetaAdGuard").setContentText("DNSフィルタが動作中").setSmallIcon(android.R.drawable.ic_secure).build()
+            Notification.Builder(this).setContentTitle("ZetaAdGuard").setContentText("DNSフィルタ・通信記録中").setSmallIcon(android.R.drawable.ic_secure).build()
         }
     }
 
     companion object {
         private const val CHANNEL_ID = "zeta_adguard_dns"
         private const val NOTIFICATION_ID = 7
+        private const val LOG_FILE = "dns_queries.log"
+        private val LOG_LOCK = Any()
         private val BLOCKED_DOMAINS = setOf(
             "doubleclick.net", "googlesyndication.com", "googleadservices.com",
             "adservice.google.com", "pagead2.googlesyndication.com"
