@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
 import android.os.Bundle
+import android.os.Build
+import android.content.pm.PackageManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -70,6 +72,15 @@ class MainActivity : Activity() {
     }
 
     private fun startFilter() {
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf("android.permission.POST_NOTIFICATIONS"), REQUEST_NOTIFICATIONS)
+            status.text = "通知の許可を求めています。表示された画面で「許可」を押してください。"
+            return
+        }
+        startFilterNow()
+    }
+
+    private fun startFilterNow() {
         try {
             val intent = Intent(this, DnsVpnService::class.java)
             startForegroundService(intent)
@@ -80,11 +91,19 @@ class MainActivity : Activity() {
         }
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATIONS) {
+            status.text = if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) "通知が許可されました。フィルタを起動します…" else "通知が許可されませんでした。通知が表示されない可能性があります。"
+            startFilterNow()
+        }
+    }
+
     private fun showError(prefix: String, error: Exception) {
         val detail = error.javaClass.simpleName + ": " + (error.message ?: "詳細なし")
         status.text = "$prefix\n$detail"
         Toast.makeText(this, "$prefix: $detail", Toast.LENGTH_LONG).show()
     }
 
-    companion object { private const val REQUEST_VPN = 1001 }
+    companion object { private const val REQUEST_VPN = 1001; private const val REQUEST_NOTIFICATIONS = 1002 }
 }
