@@ -207,9 +207,17 @@ class DnsVpnService : VpnService() {
         private const val NOTIFICATION_ID = 7
         private const val LOG_FILE = "dns_queries.log"
         private val LOG_LOCK = Any()
+        // Google ad domains plus ad-delivery endpoints observed while the ZETA ad prompt appeared.
+        // Keep these as exact hostnames to avoid blocking entire SDK/analytics domains.
         private val BLOCKED_DOMAINS = setOf(
             "doubleclick.net", "googlesyndication.com", "googleadservices.com",
-            "adservice.google.com", "pagead2.googlesyndication.com"
+            "adservice.google.com", "pagead2.googlesyndication.com",
+            "sdkapi.dsp-api.moloco.com",
+            "gateway.unityads.unity3d.com",
+            "sg-ali-ad-mof-sdk.mtgglobals.com",
+            "play.mtgglobals.com",
+            "rt.applovin.com",
+            "logs.ads.vungle.com"
         )
     }
 }
