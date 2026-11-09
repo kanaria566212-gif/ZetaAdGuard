@@ -87,6 +87,20 @@ class DnsVpnService : VpnService() {
         }
     }
 
+    private fun isProtectedDomain(domain: String): Boolean {
+        return domain == "zeta-ai.io" || domain.endsWith(".zeta-ai.io")
+    }
+
+    private fun isAdRelatedDomain(domain: String): Boolean {
+        val d = domain.lowercase()
+        val adTokens = listOf("ads", "adserver", "adservice", "doubleclick", "googlesyndication",
+            "googleadservices", "unityads", "applovin", "vungle", "moloco", "mediation",
+            "bidding", "interstitial", "rewarded", "banner", "pangle", "fyber", "inner-active",
+            "mtgglobals", "bm-ads")
+        return adTokens.any { token -> d.split('.', '-', '_').any { it == token } ||
+            d.contains(token) }
+    }
+
     private fun logLine(message: String) {
         try {
             synchronized(LOG_LOCK) {
