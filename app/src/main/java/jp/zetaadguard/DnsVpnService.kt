@@ -95,6 +95,7 @@ class DnsVpnService : VpnService() {
         val d = domain.lowercase()
         val adTokens = listOf("ads", "adserver", "adservice", "doubleclick", "googlesyndication",
             "googleadservices", "unityads", "applovin", "vungle", "moloco", "mediation",
+            "adrevenue",
             "bidding", "interstitial", "rewarded", "banner", "pangle", "fyber", "inner-active",
             "mtgglobals", "bm-ads")
         return adTokens.any { token -> d.split('.', '-', '_').any { it == token } ||
