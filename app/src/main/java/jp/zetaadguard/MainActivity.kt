@@ -10,6 +10,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import java.io.File
 
 class MainActivity : Activity() {
     private lateinit var status: TextView
@@ -41,6 +42,10 @@ class MainActivity : Activity() {
                 }
             }
         }
+        val logs = Button(this).apply {
+            text = "通信ログを見る"
+            setOnClickListener { showDnsLogs() }
+        }
         val stop = Button(this).apply {
             text = "停止"
             setOnClickListener {
@@ -55,8 +60,15 @@ class MainActivity : Activity() {
         }
         layout.addView(status)
         layout.addView(start)
+        layout.addView(logs)
         layout.addView(stop)
         setContentView(layout)
+    }
+
+    private fun showDnsLogs() {
+        val logFile = File(filesDir, "dns_queries.log")
+        val content = if (logFile.exists()) logFile.readLines().takeLast(100).joinToString("\n") else "まだDNSログがありません。"
+        status.text = "DNS通信ログ（最新100件）\n\n$content\n\n※ここに表示されるのはVPNが受け取れたDNS通信だけです。"
     }
 
     @Deprecated("Deprecated by Android, retained for broad device compatibility")
