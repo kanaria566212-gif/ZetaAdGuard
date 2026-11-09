@@ -42,6 +42,19 @@ class MainActivity : Activity() {
                 }
             }
         }
+        val autoBlock = Button(this).apply {
+            val prefs = getSharedPreferences("filter_settings", MODE_PRIVATE)
+            fun refreshLabel() {
+                text = if (prefs.getBoolean("auto_block", true)) "自動ブロック：ON" else "自動ブロック：OFF"
+            }
+            refreshLabel()
+            setOnClickListener {
+                val enabled = !prefs.getBoolean("auto_block", true)
+                prefs.edit().putBoolean("auto_block", enabled).apply()
+                refreshLabel()
+                Toast.makeText(this@MainActivity, if (enabled) "自動ブロックをONにしました" else "自動ブロックをOFFにしました", Toast.LENGTH_SHORT).show()
+            }
+        }
         val logs = Button(this).apply {
             text = "通信ログを見る"
             setOnClickListener { showDnsLogs() }
