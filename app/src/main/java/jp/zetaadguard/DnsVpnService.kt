@@ -70,7 +70,7 @@ class DnsVpnService : VpnService() {
                 if (dnsLength < 12) continue
                 val query = packet.copyOfRange(dnsStart, length)
                 val domain = readDomain(query, 0, query.size) ?: "(解析できないDNS名)"
-                val blocked = BLOCKED_DOMAINS.any { domain == it || domain.endsWith(".$it") }
+                val autoBlock = getSharedPreferences("filter_settings", MODE_PRIVATE).getBoolean("auto_block", true)\n                val blocked = !isProtectedDomain(domain) && (BLOCKED_DOMAINS.any { domain == it || domain.endsWith(".$it") } || (autoBlock && isAdRelatedDomain(domain)))
                 logLine("${if (blocked) "BLOCK" else "DNS"} $domain")
                 val dnsReply = if (blocked) nxdomain(query) else forwardDns(query)
                 if (dnsReply != null) {
